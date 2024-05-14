@@ -125,8 +125,8 @@ CREATE TABLE Gyógyszer_felírás (
     id INT PRIMARY KEY,
     v_id INT,
     gy_id INT,
-    FOREIGN KEY (v_id) REFERENCES Vizsgálat(id),
-    FOREIGN KEY (gy_id) REFERENCES Gyógyszer(id)
+    FOREIGN KEY (v_id) REFERENCES Vizsgalat(id),
+    FOREIGN KEY (gy_id) REFERENCES Gyogyszer(id)
 );
 
 INSERT INTO Gyógyszer_felírás (id, v_id, gy_id) VALUES
@@ -159,11 +159,18 @@ INSERT INTO Gyógyszer_felírás (id, v_id, gy_id) VALUES
 (27, 14, 12),
 (28, 15, 13),
 (29, 15, 14);
---Maszkolás
+
+--Maszkolás engedélyek konfigurálása
 
 CREATE USER Masked WITHOUT LOGIN;
 
 GRANT SELECT ON Betegek TO Masked;
+GRANT SELECT ON Vizsgalat TO Masked;
+GRANT SELECT ON Orvos TO Masked;
+GRANT SELECT ON Betegek TO Masked;
+GRANT SELECT ON Gyógyszer_felírás TO Masked;
+GRANT SELECT ON Gyogyszer TO Masked;
+GRANT SELECT ON Gyogyszertipus TO Masked;
 
 EXECUTE AS User= 'Masked';
 
@@ -197,7 +204,7 @@ SELECT
   SUM(G.ar) AS OsszGyogyszerKoltseg
 FROM Betegek B
 JOIN Vizsgalat V ON B.id = V.b_id
-JOIN Gyogyszer_feliras GF ON V.id = GF.v_id
+JOIN Gyógyszer_felírás GF ON V.id = GF.v_id
 JOIN Gyogyszer G ON GF.gy_id = G.id
 GROUP BY B.id, B.nev
 ORDER BY B.nev;
@@ -215,7 +222,7 @@ SELECT
     COUNT(gf.gy_id) AS FelirtGyogyszerekSzama,
     SUM(g.ar) AS OsszesKoltseg
 FROM 
-    Gyogyszer_feliras gf
+    Gyógyszer_felírás gf
 JOIN 
     Gyogyszer g ON gf.gy_id = g.id
 JOIN 
@@ -229,7 +236,7 @@ WITH RankedData AS (
            g.nev AS GyogyszerNeve, 
            g.ar AS Ar,
            ROW_NUMBER() OVER (PARTITION BY b.nev ORDER BY g.nev) AS RowNum
-    FROM Gyogyszer_feliras gf
+    FROM Gyógyszer_felírás gf
     JOIN Vizsgalat v ON gf.v_id = v.id
     JOIN Betegek b ON v.b_id = b.id
     JOIN Gyogyszer g ON gf.gy_id = g.id
